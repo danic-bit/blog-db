@@ -1,0 +1,84 @@
+CREATE DATABASE blog;
+\c blog
+
+CREATE TABLE usuario (
+    id INT,
+    email VARCHAR(25),
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE post (
+    id INT,
+    usuario_id INT,
+    titulo VARCHAR(50),
+    fecha DATE,
+    PRIMARY KEY (id),
+    FOREIGN KEY (usuario_id) REFERENCES
+    usuario(id)
+);
+
+CREATE TABLE comentario (
+    id INT,
+    usuario_id INT,
+    post_id INT,
+    texto VARCHAR(255),
+    fecha DATE,
+    PRIMARY KEY (id),
+    FOREIGN KEY (post_id) REFERENCES
+    post(id),
+    FOREIGN KEY (usuario_id) REFERENCES
+    usuario(id)
+);
+
+\copy usuario FROM 'C:\Users\Daniela\workspace\bootcamp\m5-blog-gui\usuarios.csv' csv header;
+
+\copy post FROM 'C:\Users\Daniela\workspace\bootcamp\m5-blog-gui\post.csv' csv header;
+
+\copy comentario FROM 'C:\Users\Daniela\workspace\bootcamp\m5-blog-gui\comentarios.csv' csv header;
+
+
+--Seleccionar el correo, id y título de todos los post publicados por el usuario 5.
+
+SELECT us.id, us.email, post.titulo as titulo_post
+FROM post
+INNER JOIN usuario as us 
+ON us.id = post.usuario_id
+WHERE post.usuario_id = 5;
+
+    -- otra forma:
+    SELECT usuario.email, post.id, post.titulo
+    FROM usuario
+    JOIN post ON usuario.id = post.usuario_id
+    WHERE post.usuario_id = 5;
+
+
+--Listar el correo, id y el detalle de todos los comentarios que no hayan sido realizados por el usuario con email usuario06@hotmail.com.
+
+SELECT  usuario.*, comentario.post_id, comentario.texto, comentario.fecha
+FROM comentario
+JOIN usuario ON usuario.id = comentario.usuario_id
+WHERE comentario.usuario_id != 6;
+
+--Listar los usuarios que no han publicado ningún post
+
+SELECT usuario.id as id_usuario_sin_post
+FROM usuario
+LEFT JOIN post
+ON post.usuario_id = usuario.id 
+WHERE post IS NULL;
+
+--Listar todos los post con sus comentarios (incluyendo aquellos que no poseen comentarios)
+
+SELECT * 
+FROM post
+FULL OUTER JOIN comentario
+ON post.usuario_id = comentario.usuario_id;
+
+--Listar todos los usuarios que hayan publicado un post en Junio
+
+SELECT usuario_id, fecha as fecha_posteo
+FROM post
+WHERE fecha BETWEEN '2020-06-01' and '2020-06-30'
+ORDER BY fecha ASC;  --ojo la fecha aunque esta 'entre comillas simples' no se comporta como string (se pueden ordenar con mayor, menor, etc)
+
+
